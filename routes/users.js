@@ -30,8 +30,7 @@ router.post('/', authorizeMiddleware(), asyncErrorHandler(async (req, res) => {
     const userData = pick(req.body, ['email', 'firstName', 'lastName', 'password']);
 
     // check that email doesn't yet exist
-    const existingUser = await usersModel.findOne({email: userData.email}, {_id: true});
-    if (existingUser) {
+    if (await usersModel.findOne({email: userData.email}, {_id: true})) {
         res.sendStatus(409);
         return;
     }
