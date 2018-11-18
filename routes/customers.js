@@ -14,7 +14,7 @@ customerSchema = [
     ['contacts', {isArray: true, schema: ['type', 'contact', 'info']}],
 ];
 
-router.get('/:uid', asyncErrorHandler(async (req, res) => {
+router.get('/:uid', authorizeMiddleware(), asyncErrorHandler(async (req, res) => {
     const uid = req.params.uid;
     const customer = await customersModel.findOne({_id: dbUtils.ObjectId(uid)});
     if (customer) {
@@ -29,10 +29,10 @@ router.post('/', authorizeMiddleware(), asyncErrorHandler(async (req, res) => {
     
     const errors = validators.validate(customerData,
         validators.createValidator({
-            name: commonValidators.notEmpty(),
+            name: commonValidators.requiredNotEmpty(),
             contacts: [commonValidators.validateIfExists(validators.createValidator({
                 type: commonValidators.oneOf(['phone', 'email', 'other']),
-                contact: commonValidators.notEmpty(),
+                contact: commonValidators.requiredNotEmpty(),
             }))]
         })
     );
@@ -47,6 +47,7 @@ router.post('/', authorizeMiddleware(), asyncErrorHandler(async (req, res) => {
         }
 
         const customer = await customersModel.insert(customerData);
+        
         res.status(201).json(customer);
     }
 }));

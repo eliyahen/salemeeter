@@ -1,12 +1,18 @@
 const express = require('express');
-const pick = require('lodash/pick');
 const omit = require('lodash/omit');
 const authorizeMiddleware = require('./helpers/auth.middleware').authorize;
 const asyncErrorHandler = require('./helpers/error.decorator').asyncErrorHandler;
 const dbUtils = require('../db/utils');
+const validators = require('../utils/validators');
+const commonValidators = require('../utils/validators.common');
+const applyDocumentSchema = require('../utils/schema').applyDocumentSchema;
 const usersModel = require('../models/users.model');
 
 const router = express.Router({strict: true});
+
+const userSchema = [
+    'email', 'password', 'name', 'firstName', 'lastName',
+];
 
 router.get('/me', (req, res) => {
     if (req.user) {
@@ -16,7 +22,7 @@ router.get('/me', (req, res) => {
     }
 });
 
-router.get('/:uid', asyncErrorHandler(async (req, res) => {
+router.get('/:uid', authorizeMiddleware(), asyncErrorHandler(async (req, res) => {
     const uid = req.params.uid;
     const user = await usersModel.findOne({_id: dbUtils.ObjectId(uid)}, {password: false});
     if (user) {
@@ -27,30 +33,27 @@ router.get('/:uid', asyncErrorHandler(async (req, res) => {
 }));
 
 router.post('/', authorizeMiddleware(), asyncErrorHandler(async (req, res) => {
-    const userData = pick(req.body, ['email', 'firstName', 'lastName', 'password']);
+    const userData = applyDocumentSchema({schema: userSchema}, req.body);
 
+    const errors = validators.validate(userData,
+        validators.createValidator({
+            email: commonValidators.requiredNotEmpty(),
+            firstName: commonValidators.requiredNotEmpty(),
+            password: commonValidators.requiredNotEmpty(),
+        })
+    );
+
+    if (errors) {
+        res.status(400).json(errors);
+        return;
+    }
+        
     // check that email doesn't yet exist
     if (await usersModel.findOne({email: userData.email}, {_id: true})) {
         res.sendStatus(409);
         return;
     }
-    
-    // validate user data
-    const errors = {};
-    if (!userData.email) {
-        errors.email = '"email" is required.';
-    }
-    if (!userData.firstName) {
-        errors.firstName = '"firstName" is required.';
-    }
-    if (!userData.password) {
-        errors.password = '"password" is required.';
-    }
-    if (Object.keys(errors).length) {
-        res.status(403).json(errors);
-        return;
-    }
-    
+
     // update user fields before save
     userData.name = [userData.firstName, userData.lastName].join(' ');
     userData.password = usersModel.encryptPassword(userData.password);
