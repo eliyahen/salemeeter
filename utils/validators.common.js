@@ -1,40 +1,45 @@
-const validatorsUtils = require('./validators');
+const validators = require('./validators');
 
-const isRequired = (error = 'This field is required.') => (value) => {
+const isRequired = (errorMsg = 'This field is required.') => (value) => {
     if (value === undefined) {
-        throw error;
+        return errorMsg;
     }
 }
 
-const notEmpty = (error = 'This field must not be empty.') => (value) => {
+const notEmpty = (errorMsg = 'This field must not be empty.') => (value) => {
     if (!value) {
-        throw error;
+        return errorMsg;
     }
 }
+
+const requiredNotEmpty = (errorMsgs = {required: undefined, empty: undefined}) => validators.firstOfValidators(
+    isRequired(errorMsgs.required),
+    notEmpty(errorMsgs.empty)
+);
 
 const validateIfExists = (validatorFn) => (value) => {
     if (value !== undefined) {
-        validatorFn(value);
+        return validatorFn(value);
     }
 };
 
 const oneOf = (values, error='This field should be one of: %values%') => (value) => {
     if (values.indexOf(value) === -1) {
-        throw error.replace('%values%', values.map(v => `'${String(v)}'`).join(', '));
+        return error.replace('%values%', values.map(v => `'${String(v)}'`).join(', '));
     }
 };
 
-const isArray = (error = 'This field should be an array.') => (value) => {
+const isArray = (errorMsg = 'This field should be an array.') => (value) => {
     if (!Array.isArray(value)) {
-        throw error;
+        return errorMsg;
     }
 };
 
-const notEmptyArray = (error = 'Array should not be empty') => validatorsUtils.firstErrorValidators(
+const notEmptyArray = (errorMsg = 'Array should not be empty') => validators.firstOfValidators(
     isArray,
     (value) => {
         if (value.length === 0) {
-            throw error;
+            return errorMsg;
         }
     }
 );
@@ -42,6 +47,7 @@ const notEmptyArray = (error = 'Array should not be empty') => validatorsUtils.f
 module.exports = {
     isRequired,
     notEmpty,
+    requiredNotEmpty,
     validateIfExists,
     oneOf,
     isArray,
