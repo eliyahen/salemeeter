@@ -6,6 +6,12 @@ const isRequired = (error = 'This field is required.') => (value) => {
     }
 }
 
+const notEmpty = (error = 'This field must not be empty.') => (value) => {
+    if (!value) {
+        throw error;
+    }
+}
+
 const validateIfExists = (validatorFn) => (value) => {
     if (value !== undefined) {
         validatorFn(value);
@@ -35,6 +41,7 @@ const notEmptyArray = (error = 'Array should not be empty') => validatorsUtils.f
 
 module.exports = {
     isRequired,
+    notEmpty,
     validateIfExists,
     oneOf,
     isArray,
