@@ -1,6 +1,21 @@
+const mergeWith = require('lodash/mergeWith');
 
 /**
- * Validates a document due to given document of validators.
+ * Validates the data with the given validator.
+ * 
+ * @param {function} validatorFn the validator function.
+ * @param {any} data the data to validate
+ * @returns errors or null.
+ */
+const validate = (data, validatorFn) => {
+    const errors = validatorFn(data);
+    if (errors) {
+        return errors;
+    }
+}
+
+/**
+ * Creates a validator for a document according to given document of validators.
  * 
  * @param {validatorFn | Object | Array} fieldsValidators The validator document. The value at the end should be a validator function that might return error.
  * @returns {function(data)} a function that validates the given data and returns on error when found.
@@ -53,8 +68,8 @@ const combineValidators = (...validators) => {
     return (value) => {
         const errors = validators.reduce((acc, validator) => {
             const err = validator(value);
-            if (err) {
-                acc.push(err);
+            if (err) { 
+                acc = mergeErrors(acc, err);
             }
             return acc;
         }, []);
@@ -82,23 +97,44 @@ const firstOfValidators = (...validators) => {
     };
 };
 
-/**
- * Validates the data with the given validator.
- * 
- * @param {function} validatorFn the validator function.
- * @param {any} data the data to validate
- * @returns errors or null.
- */
-const validate = (data, validatorFn) => {
-    const errors = validatorFn(data);
-    if (errors) {
-        return errors;
+const combineErrors = (errValue, srcValue) => {
+    if (errValue !== undefined && srcValue !== undefined && (
+        typeof(errValue) !== 'object' || Array.isArray(errValue) ||
+        typeof(srcValue) !== 'object' || Array.isArray(srcValue)
+    )) {
+        return ((Array.isArray(errValue)) ? errValue : [errValue]).concat(
+            (Array.isArray(srcValue)) ? srcValue : [srcValue]);
     }
-}
+    // otherwise - return nothing to apply default merge
+};
+
+/**
+ * Merges errors objects together, concatenating error messages in array.
+ * 
+ * @param  {object} errValue the errors object.
+ * @param  {object} srcValue the errors to merge in.
+ * @returns {object} the merged errors, or undefined.
+ */
+const mergeErrors = (errValue, srcValue) => {
+    if (errValue !== undefined && srcValue !== undefined) {
+        const errCombined = combineErrors(errValue, srcValue);
+        if (errCombined) {
+            return errCombined;
+        } else {
+            const errMerged = mergeWith({}, errValue, srcValue, combineErrors);
+            if (Object.keys(errMerged) > 0) {
+                return errMerged;
+            }
+        }
+    } else {
+        return (errValue === undefined) ? srcValue : errValue;
+    }
+};
 
 module.exports = {
+    validate,
     createValidator,
     combineValidators,
     firstOfValidators,
-    validate,
+    mergeErrors,
 };

@@ -24,12 +24,12 @@ const authenticate = async (req, res, next) => {
     next();
 };
 
-const authorize = (authorizeFn = (req) => Promise.resolve(!!req.user)) => (
+const authorize = (authorizeFn = async (req) => !!req.user) => (
     async (req, res, next) => {
         if (await authorizeFn(req, res)) {
             next();
         } else {
-            res.sendStatus(403);
+            res.sendStatus(401);
         }
     }
 );

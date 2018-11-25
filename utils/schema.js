@@ -4,6 +4,7 @@
  * 
  * @param {{schema, isArray}} docSchema schema definition. schema=null means anything. isArray means the schema is for each item in the array.
  * @param {*} data the data to filter according the schema.
+ * @returns {object} cleaned data object according to schema.
  */
 const applyDocumentSchema = ({schema, isArray = false}, data) => {
     let retData;
