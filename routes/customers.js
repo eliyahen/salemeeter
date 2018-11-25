@@ -11,7 +11,7 @@ const router = express.Router({strict: true});
 
 customerSchema = [
     'name', 'address',
-    ['contacts', {isArray: true, schema: ['type', 'contact', 'info']}],
+    ['contacts', {isArray: true, schema: ['form', 'contact', 'info']}],
 ];
 
 router.get('/:uid', authorizeMiddleware(), asyncErrorHandler(async (req, res) => {
@@ -31,7 +31,7 @@ router.post('/', authorizeMiddleware(), asyncErrorHandler(async (req, res) => {
         validators.createValidator({
             name: commonValidators.requiredNotEmpty(),
             contacts: [commonValidators.validateIfExists(validators.createValidator({
-                type: commonValidators.oneOf(['phone', 'email', 'other']),
+                form: commonValidators.oneOf(['phone', 'email', 'other']),
                 contact: commonValidators.requiredNotEmpty(),
             }))]
         })
