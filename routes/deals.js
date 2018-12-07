@@ -4,13 +4,14 @@ const asyncErrorHandler = require('./helpers/error.decorator').asyncErrorHandler
 const dbUtils = require('../db/utils');
 const validators = require('../utils/validators');
 const applyDocumentSchema = require('../utils/schema').applyDocumentSchema;
+const getQuerySearch = require('../utils/search').getQuerySearch;
 const commonValidators = require('../utils/validators.common');
 const dealsModel = require('../models/deals.model');
 const customersModel = require('../models/customers.model');
 
 const router = express.Router({strict: true});
 
-dealSchema = [
+const dealSchema = [
     'userId', 'customerId',
     'totalAmount', 'brand', 'datetime',
     ['payments', {isArray: true, schema: ['amount', 'datetime', 'form']}],
@@ -26,11 +27,24 @@ router.get('/:id', authorizeMiddleware(), asyncErrorHandler(async (req, res) => 
     }
 }));
 
+router.get('/', authorizeMiddleware(), asyncErrorHandler(async (req, res) => {
+    const search = getQuerySearch(req.query.q);
+
+    if (search.totalAmount) {
+        search.totalAmount = Object.keys(search.totalAmount).reduce((acc, k) => {
+            acc[k] = +search.totalAmount[k];
+            return acc;
+        }, {});
+    }
+    
+    const resCursor = dealsModel.findAll(search);
+    const deals = await resCursor.toArray();
+    
+    res.status(200).json({search, deals});
+}));
+
 router.post('/', authorizeMiddleware(), asyncErrorHandler(async (req, res) => {
-    let dealData = applyDocumentSchema({schema: dealSchema}, req.body, {
-        datetime: new Date(),
-        payments: [],
-    });
+    let dealData = applyDocumentSchema({schema: dealSchema}, req.body);
 
     dealData = Object.assign({
         datetime: new Date(),
