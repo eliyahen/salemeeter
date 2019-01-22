@@ -3,6 +3,7 @@ const authenticateMiddleware = require('./helpers/auth.middleware').authenticate
 const errorHandlerMiddlware = require('./helpers/error.middleware').errorHandlerMiddlware;
 const rootRouter = require('./root');
 const authRouter = require('./auth');
+const auth0Router = require('./auth0');
 const usersRouter = require('./users');
 const customersRouter = require('./customers');
 const dealsRouter = require('./deals');
@@ -14,6 +15,7 @@ appRouter.use(authenticateMiddleware);
 
 appRouter.use('', rootRouter);
 appRouter.use('/auth', authRouter);
+appRouter.use('/auth0', auth0Router);
 appRouter.use('/users', usersRouter);
 appRouter.use('/customers', customersRouter);
 appRouter.use('/deals', dealsRouter);

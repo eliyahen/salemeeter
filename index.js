@@ -3,7 +3,7 @@ const initialize = require('./initialize');
 initialize().then(() => {
     const app = require('./app');
 
-    const server = app.listen(3001, function () {
+    const server = app.listen(process.env.APP_PORT, function () {
         const host = server.address().address;
         const port = server.address().port;
     
