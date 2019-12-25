@@ -5,7 +5,8 @@
   "main": "index.js",
   "scripts": {
     "start": "node index.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start-gql": "node gql-server.js"
   },
   "keywords": [
     "semel"
@@ -13,10 +14,12 @@
   "author": "Eli Chen",
   "license": "ISC",
   "dependencies": {
+    "apollo-server": "^2.4.8",
     "axios": "^0.18.0",
     "bcrypt": "^3.0.2",
     "dotenv": "^6.2.0",
     "express": "^4.16.4",
+    "graphql": "^14.2.1",
     "lodash": "^4.17.11",
     "mongodb": "^3.1.8"
   },

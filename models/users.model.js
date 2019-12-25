@@ -20,7 +20,8 @@ const insert = (data) => {
 };
 
 const update = (id, data) => {
-    return usersDb.findOneAndUpdate({_id: id}, {$set: data}, {returnNewDocument: true});
+    // return usersDb.findOneAndUpdate({_id: id}, {$set: data}, {returnNewDocument: true});
+    return usersDb.updateOne({_id: id}, {$set: data});
 };
 
 const remove = (id) => {
